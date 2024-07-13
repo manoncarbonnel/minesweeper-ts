@@ -1,9 +1,8 @@
-import { describe, expect, test } from 'vitest';
-
+import { describe, expect, test } from "vitest";
+import { minesweeper } from "../src";
 
 // Specs
 // The goal of the game is to find all the mines within an MxN field.
-
 
 // * : bomb
 // . : neutral
@@ -27,37 +26,49 @@ type SolutionCell = number | "*";
 type SolutionRow = SolutionCell[];
 type Solution = SolutionRow[];
 
-const fieldEquals = (a: Field, b: Field): boolean => {
-  return JSON.stringify(a) === JSON.stringify(b);
-}
-
-function toSolutionCell(cell: string, i: number, row: FieldCell[]): SolutionCell {
-  if (cell === "*") {
-    return "*";
-  }
-  const neighbours = [row[i-1], row[i+1]]
-  return neighbours.filter(it => it==="*").length;
-}
-
-const minesweeper = (input: Field): Solution => {
-  return [input[0].map(toSolutionCell)];
-};
-
-describe('Minesweeper', () => {
-  test('One empty cell', () => {
-    expect(minesweeper([["."]])).toEqual([[0]]);
+describe("Minesweeper", () => {
+  test("Acceptance", () => {
+    expect(
+      minesweeper([
+        ["*", ".", ".", "."],
+        [".", ".", ".", "."],
+        [".", "*", ".", "."],
+        [".", ".", ".", "."],
+      ])
+    ).toEqual([
+      ["*", 1, 0, 0],
+      [2, 2, 1, 0],
+      [1, "*", 1, 0],
+      [1, 1, 1, 0],
+    ]);
   });
-  test('One bomb cell', () => {
-    expect(minesweeper([["*"]])).toEqual([["*"]]);
+  describe("single column", () => {
+    const stuff: { field: Field; solution: Solution }[] = [
+      { field: [["."], ["."]], solution: [[0], [0]] },
+      { field: [["*"], ["."]], solution: [["*"], [1]] },
+      { field: [["."], ["*"]], solution: [[1], ["*"]] },
+      { field: [["*"], ["*"]], solution: [["*"], ["*"]] },
+    ];
+    test.each(stuff)("$field -> $solution", ({ field, solution }) => {
+      expect(minesweeper(field)).toEqual(solution);
+    });
   });
-  test('Two empty cells', () => {
-    expect(minesweeper([[".", "."]])).toEqual([[0, 0]])
-  })
-  test('One empty cell and one bomb cell', () => {
-    expect(minesweeper([["*", "."]])).toEqual([["*", 1]])
-  })
-  test('François & Adrien', () => {
-    expect(minesweeper([["*", ".", "*"]])).toEqual([["*", 2, "*"]])
-  })
+  describe("single row", () => {
+    const stuff: { field: Field; solution: Solution }[] = [
+      { field: [["."]], solution: [[0]] },
+      { field: [["*"]], solution: [["*"]] },
+      { field: [[".", "."]], solution: [[0, 0]] },
+      { field: [["*", "."]], solution: [["*", 1]] },
+      { field: [["*", ".", "*"]], solution: [["*", 2, "*"]] },
+      { field: [["*", "*", "."]], solution: [["*", "*", 1]] },
+      { field: [[".", "*", "*"]], solution: [[1, "*", "*"]] },
+      {
+        field: [["*", ".", "*", ".", ".", ".", "*", "*"]],
+        solution: [["*", 2, "*", 1, 0, 1, "*", "*"]],
+      },
+    ];
+    test.each(stuff)("$field -> $solution", ({ field, solution }) => {
+      expect(minesweeper(field)).toEqual(solution);
+    });
+  });
 });
-
